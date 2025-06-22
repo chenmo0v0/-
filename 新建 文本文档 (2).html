@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4337区6/21要塞战统计</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+            --primary: #2c3e50;
+            --secondary: #e74c3c;
+            --clan-color: #3498db;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: url('https://img.zcool.cn/community/01a3a55d156e2da8012187f4169a4f.jpg@1280w_1l_2o_100sh.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+            border: 3px solid var(--secondary);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1a2a3a 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--secondary);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header .subtitle {
+            display: block;
+            margin-top: 10px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .search-box {
+            margin: 15px auto;
+            width: 90%;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid var(--secondary);
+            border-radius: 25px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(236, 240, 241, 0.8);
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+            border-right: 1px dashed #ccc;
+        }
+        
+        .stat-item:last-child {
+            border-right: none;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .player-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .player-card {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s;
+            position: relative;
+            background: rgba(255,255,255,0.7);
+        }
+        
+        .player-card:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateX(5px);
+        }
+        
+        .rank {
+            font-weight: bold;
+            font-size: 18px;
+            width: 40px;
+            text-align: center;
+            color: var(--primary);
+        }
+        
+        .rank-1 { color: var(--gold); }
+        .rank-2 { color: var(--silver); }
+        .rank-3 { color: var(--bronze); }
+        
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #ddd;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .rank-1 .avatar { border-color: var(--gold); }
+        .rank-2 .avatar { border-color: var(--silver); }
+        .rank-3 .avatar { border-color: var(--bronze); }
+        
+        .player-info {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--primary);
+        }
+        
+        .clan-name {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--clan-color);
+        }
+        
+        .player-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .stat-score {
+            font-size: 14px;
+        }
+        
+        .current-score {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .score-change {
+            font-size: 13px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .score-up {
+            background: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+        }
+        
+        .score-down {
+            background: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+        }
+        
+        .score-same {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+        
+        .highlight {
+            background: rgba(241, 196, 15, 0.3);
+            border-left: 3px solid #f1c40f;
+        }
+        
+        @media (max-width: 600px) {
+            .player-card {
+                padding: 10px 15px;
+                flex-wrap: wrap;
+            }
+            
+            .avatar {
+                width: 50px;
+                height: 50px;
+                margin-right: 10px;
+            }
+            
+            .stats-bar {
+                flex-direction: column;
+            }
+            
+            .stat-item {
+                border-right: none;
+                border-bottom: 1px dashed #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>4337区 要塞战统计</h1>
+            <span class="subtitle">6月21日战报 • 组织: 出现又离开</span>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="搜索玩家名称...">
+        </div>
+        
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="total-players">0</div>
+                <div class="stat-label">参战人数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avg-score">0</div>
+                <div class="stat-label">平均分数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="top-score">0</div>
+                <div class="stat-label">最高分数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-change">+0</div>
+                <div class="stat-label">总分变化</div>
+            </div>
+        </div>
+        
+        <ul class="player-list" id="player-list">
+            <!-- 数据将通过JavaScript动态加载 -->
+        </ul>
+    </div>
+
+    <script>
+        // 火影主题玩家数据 (当前分数和上次分数)
+        const playerData = [
+            { 
+                name: "无敌火影大王", 
+                current: 161, 
+                previous: 140,
+                avatar: "https://i.imgur.com/JY5Qh3A.png" // 鸣人
+            },
+            { 
+                name: "涂山红红", 
+                current: 160, 
+                previous: 160,
+                avatar: "https://i.imgur.com/K3W5vVz.png" // 佐助
+            },
+            { 
+                name: "苏", 
+                current: 137, 
+                previous: 124,
+                avatar: "https://i.imgur.com/LpW9D8h.png" // 小樱
+            },
+            { 
+                name: "好困", 
+                current: 131, 
+                previous: 120,
+                avatar: "https://i.imgur.com/9X5JQjT.png" // 卡卡西
+            },
+            { 
+                name: "519", 
+                current: 130, 
+                previous: 115,
+                avatar: "https://i.imgur.com/V4WZJbF.png" // 我爱罗
+            },
+            { 
+                name: "忆挽", 
+                current: 128, 
+                previous: 117,
+                avatar: "https://i.imgur.com/7WXjJ9P.png" // 雏田
+            },
+            { 
+                name: "派大星", 
+                current: 123, 
+                previous: 123,
+                avatar: "https://i.imgur.com/qM8mRvR.png" // 迪达拉
+            },
+            { 
+                name: "软糖", 
+                current: 123, 
+                previous: 110,
+                avatar: "https://i.imgur.com/3sWZlwY.png" // 鼬
+            },
+            { 
+                name: "老头", 
+                current: 117, 
+                previous: 117,
+                avatar: "https://i.imgur.com/4JvRQZ9.png" // 三代目
+            },
+            { 
+                name: "江若林", 
+                current: 107, 
+                previous: 102,
+                avatar: "https://i.imgur.com/5X9wQ2b.png" // 佐井
+            },
+            { 
+                name: "别来无恙", 
+                current: 95, 
+                previous: 71,
+                avatar: "https://i.imgur.com/8K2nW0d.png" // 天天
+            },
+            { 
+                name: "风云", 
+                current: 94, 
+                previous: 79,
+                avatar: "https://i.imgur.com/GtHqZ3k.png" // 宁次
+            },
+            { 
+                name: "陈默", 
+                current: 93, 
+                previous: 93,
+                avatar: "https://i.imgur.com/2QY9wDx.png" // 志乃
+            },
+            { 
+                name: "̶_Aria^", 
+                current: 90, 
+                previous: 77,
+                avatar: "https://i.imgur.com/JqHsT4L.png" // 手鞠
+            },
+            { 
+                name: "7yj.", 
+                current: 88, 
+                previous: 88,
+                avatar: "https://i.imgur.com/5r8vW9c.png" // 飞段
+            },
+            { 
+                name: "千缘", 
+                current: 75, 
+                previous: 62,
+                avatar: "https://i.imgur.com/9wXZs3X.png" // 井野
+            },
+            { 
+                name: "梦辞", 
+                current: 73, 
+                previous: 73,
+                avatar: "https://i.imgur.com/4Q6wZ9k.png" // 鹿丸
+            },
+            { 
+                name: "赎", 
+                current: 73, 
+                previous: 73,
+                avatar: "https://i.imgur.com/7JQvY9h.png" // 丁次
+            },
+            { 
+                name: "伤痕", 
+                current: 80, 
+                previous: 80,
+                avatar: "https://i.imgur.com/3QvY7wJ.png" // 鬼鲛
+            },
+            { 
+                name: "不给钱真君", 
+                current: 64, 
+                previous: 64,
+                avatar: "https://i.imgur.com/6XwvZ9k.png" // 角都
+            },
+            { 
+                name: "小乌龟", 
+                current: 54, 
+                previous: 54,
+                avatar: "https://i.imgur.com/9wXZq3X.png" // 凯
+            },
+            { 
+                name: "conten", 
+                current: 40, 
+                previous: 40,
+                avatar: "https://i.imgur.com/5r8vW9c.png" // 飞段
+            }
+        ];
+
+        // 渲染排行榜
+        function renderPlayerList(filter = '') {
+            const listElement = document.getElementById('player-list');
+            listElement.innerHTML = '';
+            
+            // 按当前分数排序
+            const sortedPlayers = [...playerData].sort((a, b) => b.current - a.current);
+            
+            // 过滤玩家
+            const filteredPlayers = filter ? 
+                sortedPlayers.filter(p => p.name.toLowerCase().includes(filter.toLowerCase())) : 
+                sortedPlayers;
+            
+            // 更新统计数据
+            updatePlayerStats(filteredPlayers);
+            
+            // 渲染玩家列表
+            filteredPlayers.forEach((player, index) => {
+                const rank = sortedPlayers.findIndex(p => p.name === player.name) + 1;
+                const change = player.current - player.previous;
+                
+                const playerEl = document.createElement('li');
+                playerEl.className = `player-card rank-${rank <= 3 ? rank : ''}`;
+                
+                // 计算变化值和样式
+                let changeClass = 'score-same';
+                let changeSymbol = '';
+                if (change > 0) {
+                    changeClass = 'score-up';
+                    changeSymbol = `+${change}`;
+                } else if (change < 0) {
+                    changeClass = 'score-down';
+                    changeSymbol = change;
+                }
+                
+                playerEl.innerHTML = `
+                    <div class="rank">${rank}</div>
+                    <div class="avatar" style="background-image: url('${player.avatar}')"></div>
+                    <div class="player-info">
+                        <div class="player-name">
+                            ${player.name}
+                            <span class="clan-name">出现又离开</span>
+                        </div>
+                        <div class="player-stats">
+                            <div class="stat-score">
+                                本次分数: <span class="current-score">${player.current}</span>
+                            </div>
+                            <div class="stat-score">
+                                上次分数: ${player.previous}
+                            </div>
+                            <div class="score-change ${changeClass}">
+                                ${changeSymbol || '±0'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 高亮匹配搜索的玩家
+                if (filter && player.name.toLowerCase().includes(filter.toLowerCase())) {
+                    playerEl.classList.add('highlight');
+                }
+                
+                listElement.appendChild(playerEl);
+            });
+        }
+        
+        // 更新统计数据
+        function updatePlayerStats(playerList) {
+            const total = playerList.length;
+            const avg = total > 0 ? 
+                Math.round(playerList.reduce((sum, p) => sum + p.current, 0) / total) : 0;
+            const top = total > 0 ? Math.max(...playerList.map(p => p.current)) : 0;
+            const totalChange = playerList.reduce((sum, p) => sum + (p.current - p.previous), 0);
+            
+            document.getElementById('total-players').textContent = total;
+            document.getElementById('avg-score').textContent = avg;
+            document.getElementById('top-score').textContent = top;
+            document.getElementById('total-change').textContent = 
+                totalChange > 0 ? `+${totalChange}` : totalChange;
+            document.getElementById('total-change').style.color = 
+                totalChange > 0 ? '#27ae60' : (totalChange < 0 ? '#e74c3c' : '#3498db');
+        }
+        
+        // 搜索功能
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            renderPlayerList(e.target.value);
+        });
+        
+        // 初始渲染
+        renderPlayerList();
+    </script>
+</body>
+</html>
